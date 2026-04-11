@@ -37,11 +37,7 @@
 				@show-dialog="$emit('show-dialog', $event)"
 			/>
 			<ui-tab v-else-if="group === 'ui'" />
-			<button
-				class="v-w100"
-				@click="paste"
-				:disabled="!hasClipboardContent"
-			>
+			<button class="v-w100" @click="paste" :disabled="!hasClipboardContent">
 				Paste
 			</button>
 		</div>

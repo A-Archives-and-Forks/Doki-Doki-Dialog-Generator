@@ -6,7 +6,7 @@ export function isInput(e: EventTarget | null): e is HTMLInputElement {
 	if (e === null) return false;
 	if (e instanceof HTMLInputElement) return true;
 	if ('ownerDocument' in e) {
-		const doc = e.ownerDocument as Document;
+		const doc = (e.ownerDocument || document) as Document;
 		return e instanceof doc.defaultView!.HTMLInputElement;
 	}
 	return false;
@@ -16,7 +16,7 @@ export function isTextArea(e: EventTarget | null): e is HTMLTextAreaElement {
 	if (e === null) return false;
 	if (e instanceof HTMLTextAreaElement) return true;
 	if ('ownerDocument' in e) {
-		const doc = e.ownerDocument as Document;
+		const doc = (e.ownerDocument || document) as Document;
 		if (!doc) return false;
 		return e instanceof doc.defaultView!.HTMLTextAreaElement;
 	}
@@ -26,7 +26,7 @@ export function isTextArea(e: EventTarget | null): e is HTMLTextAreaElement {
 export function isHTMLElement(e: EventTarget): e is HTMLElement {
 	if (e instanceof HTMLElement) return true;
 	if ('ownerDocument' in e) {
-		const doc = e.ownerDocument as Document;
+		const doc = (e.ownerDocument || document) as Document;
 		if (!doc) return false;
 		return e instanceof doc.defaultView!.HTMLElement;
 	}
@@ -35,14 +35,14 @@ export function isHTMLElement(e: EventTarget): e is HTMLElement {
 
 export function isMouseEvent(e: Event): e is MouseEvent {
 	if (e instanceof MouseEvent) return true;
-	const doc = (e.target as Node).ownerDocument;
+	const doc = (e.target as Node).ownerDocument || document;
 	if (!doc) return false;
 	return e instanceof doc.defaultView!.MouseEvent;
 }
 
 export function isTouchEvent(e: Event): e is TouchEvent {
 	if (e instanceof TouchEvent) return true;
-	const doc = (e.target as Node).ownerDocument;
+	const doc = (e.target as Node).ownerDocument || document;
 	if (!doc) return false;
 	return e instanceof doc.defaultView!.TouchEvent;
 }

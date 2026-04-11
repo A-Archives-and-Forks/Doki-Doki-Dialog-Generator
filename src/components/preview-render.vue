@@ -281,7 +281,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-	getSceneRender()!.dispose();
+	getSceneRender()?.dispose();
 });
 //#region Blend over
 const inBlendOver = ref(false);

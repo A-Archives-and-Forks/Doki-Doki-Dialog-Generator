@@ -18,10 +18,7 @@
 			"
 		/>
 		<template v-else>
-			<d-fieldset
-				class="existing_panels_fieldset"
-				title="Existing Panels"
-			>
+			<d-fieldset class="existing_panels_fieldset" title="Existing Panels">
 				<d-flow no-wraping maxSize="350px">
 					<div
 						v-for="(panel, idx) of panelButtons"
@@ -44,9 +41,7 @@
 				</d-flow>
 			</d-fieldset>
 			<div class="column">
-				<d-button icon="add_to_queue" @click="addNewPanel">
-					Add new</d-button
-				>
+				<d-button icon="add_to_queue" @click="addNewPanel"> Add new</d-button>
 				<d-button
 					icon="remove_from_queue"
 					class="bt0"
@@ -85,11 +80,7 @@
 					<tbody>
 						<tr>
 							<td colspan="2">
-								<d-button
-									icon="photo_camera"
-									class="w100"
-									@click="download"
-								>
+								<d-button icon="photo_camera" class="w100" @click="download">
 									Download
 								</d-button>
 							</td>
@@ -100,27 +91,15 @@
 							</td>
 							<td>
 								<select id="export_format" v-model="format">
-									<option value="image/png">
-										PNG (lossless)
-									</option>
-									<option
-										value="image/webp"
-										v-if="webpSupport"
-									>
+									<option value="image/png">PNG (lossless)</option>
+									<option value="image/webp" v-if="webpSupport">
 										WebP (lossy)
 									</option>
-									<option
-										value="image/heif"
-										v-if="heifSupport"
-									>
+									<option value="image/heif" v-if="heifSupport">
 										HEIF (lossy)
 									</option>
-									<option value="image/jpeg">
-										JPEG (lossy)
-									</option>
-									<option value="image/jpeg">
-										WebM (lossy, video)
-									</option>
+									<option value="image/jpeg">JPEG (lossy)</option>
+									<option value="image/jpeg">WebM (lossy, video)</option>
 								</select>
 							</td>
 						</tr>
@@ -189,59 +168,52 @@
 				</table>
 			</d-fieldset>
 			<div class="column">
-				<div style="display: flex">
-					<d-button icon="download" @click="save"
-						>Quick Save</d-button
-					>
+				<div style="display: grid; grid-template-columns: auto auto">
+					<d-button icon="download" @click="save">Quick Save</d-button>
 					<d-button
 						class="bl0"
 						icon="upload"
 						@click="loadUpload.click()"
 						style="width: auto"
 					>
+						Quick Load
 						<input type="file" ref="loadUpload" @change="load" />
+					</d-button>
+					<d-button
+						v-if="canDoFullSave"
+						class="bt0"
+						icon="save"
+						@click="saveFolder"
+						>Save Folder
+					</d-button>
+					<d-button
+						v-if="canDoFullSave"
+						class="bl0 bt0"
+						icon="folder_open"
+						@click="loadOpenFolder.click()"
+						>Load Folder
+						<input
+							type="file"
+							ref="loadOpenFolder"
+							@change="loadFolder"
+							webkitdirectory
+						/>
 					</d-button>
 				</div>
 				<d-button
-					v-if="canDoFullSave"
-					class="bt0"
 					icon="save"
-					@click="saveFolder"
-					>Save Folder
-				</d-button>
-				<d-button
-					v-if="canDoFullSave"
-					class="bt0"
-					icon="folder_open"
-					@click="loadOpenFolder.click()"
-					>Load Folder
-					<input
-						type="file"
-						ref="loadOpenFolder"
-						@change="loadFolder"
-						webkitdirectory
-					/>
+					@click="emit('show-save-dialog')"
+					v-if="saveManagerAvailable"
+				>
+					Open save manager
 				</d-button>
 			</div>
 		</template>
 	</div>
-	<teleport to="#modal-messages">
-		<modal-dialog
-			:options="['No', 'Yes']"
-			no-base-size
-			class="modal-rename"
-			v-if="showConfirmModal"
-			@option="confirmOption"
-			@leave="confirmOption('No')"
-		>
-			<p class="modal-text">{{ confirmText }}</p>
-		</modal-dialog>
-	</teleport>
 </template>
 
 <script lang="ts" setup>
 import { setupPanelMixin } from '@/components/mixins/panel-mixin';
-import ModalDialog from '@/components/modal-dialog.vue';
 import DButton from '@/components/ui/d-button.vue';
 import DFieldset from '@/components/ui/d-fieldset.vue';
 import DFlow from '@/components/ui/d-flow.vue';
@@ -249,6 +221,7 @@ import ToggleBox from '@/components/ui/d-toggle.vue';
 import getConstants from '@/constants';
 import environment from '@/environments/environment';
 import eventBus, {
+	InvalidateAllThumbnails,
 	RenderUpdatedEvent,
 	ShowMessageEvent,
 	StateLoadingEvent,
@@ -259,6 +232,12 @@ import { safeAsync } from '@/util/errors';
 import type { DeepReadonly } from 'ts-essentials';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import ImageOptions from '../subtools/image-options/image-options.vue';
+
+const emit = defineEmits<{
+	'show-save-dialog': [];
+}>();
+
+const saveManagerAvailable = computed(() => !!navigator.storage);
 
 interface IPanelButton {
 	id: Panel['id'];
@@ -287,33 +266,12 @@ const canDoFullSave =
 	window.showDirectoryPicker !== undefined &&
 	'webkitRelativePath' in (File?.prototype ?? {});
 
-const currentPanel = computed(
-	() => state.panels.panels[viewport.value.currentPanel]
-);
 const isLossy = computed(() => format.value !== 'image/png');
 const canDeletePanel = computed(() => panelButtons.value.length > 1);
 
 function emptyStringInInt(v: string | number) {
 	if (v === '') return true;
 	return false;
-}
-
-const showConfirmModal = ref(false);
-const confirmText = ref('');
-const confirmResolve = ref<null | ((val: boolean) => void)>(null);
-function confirmOption(option: string) {
-	showConfirmModal.value = false;
-	if (option === 'Yes') {
-		confirmResolve.value?.(true);
-	}
-}
-
-function confirmMessage(text: string): Promise<boolean> {
-	return new Promise<boolean>((resolve) => {
-		confirmText.value = text;
-		showConfirmModal.value = true;
-		confirmResolve.value = resolve;
-	});
 }
 
 //#region Format-Support
@@ -372,9 +330,7 @@ function extractObjectText(obj: DeepReadonly<GenObject>) {
 	return '';
 }
 function moveFocusToActivePanel() {
-	const active = getRoot().querySelector(
-		'.panel_button.active'
-	) as HTMLElement;
+	const active = getRoot().querySelector('.panel_button.active') as HTMLElement;
 	if (active != null) {
 		scrollIntoView(active);
 	}
@@ -491,9 +447,7 @@ function getLimitedPanelList(): DeepReadonly<Panel['id'][]> {
 		if (!match) {
 			if (trimmedPart !== '') {
 				eventBus.fire(
-					new ShowMessageEvent(
-						`Could not read '${part}' in the page list.`
-					)
+					new ShowMessageEvent(`Could not read '${part}' in the page list.`)
 				);
 			}
 			continue;
@@ -556,9 +510,7 @@ function updateCurrentPanel(panelId: Panel['id']) {
 }
 function deletePanel() {
 	transaction(async () => {
-		state.panels.deletePanel(
-			state.panels.panels[viewport.value.currentPanel]
-		);
+		state.panels.deletePanel(state.panels.panels[viewport.value.currentPanel]);
 	});
 	nextTick(() => {
 		moveFocusToActivePanel();
@@ -574,14 +526,12 @@ function moveAhead() {
 }
 function moveBehind() {
 	transaction(() => {
-		state.panels.movePanel(
-			state.panels.panels[viewport.value.currentPanel],
-			1
-		);
+		state.panels.movePanel(state.panels.panels[viewport.value.currentPanel], 1);
 	});
 }
 //#endregion Actions
 //#region Thumbnails
+import { loadFolder } from '@/components/save-dialog/saving';
 import { useViewport } from '@/hooks/use-viewport';
 import { getMainSceneRenderer } from '@/renderables/main-scene-renderer';
 import type { GenObject } from '@/store/object-types/object';
@@ -604,98 +554,6 @@ const missingThumbnails = computed((): Panel['id'][] => {
 		return panel.lastRender == null;
 	});
 });
-
-async function saveFolder() {
-	const entry = await window.showDirectoryPicker();
-	if (!entry) return;
-
-	const entries: FileSystemHandle[] = await Array.fromAsync(entry.values());
-
-	if (
-		entries.some(
-			(entry) => entry.kind === 'file' && entry.name === 'save.dddg'
-		)
-	) {
-		if (
-			!(await confirmMessage(
-				'A save file already exists in this folder. Do you want to overwrite it?'
-			))
-		) {
-			return;
-		}
-	} else if (entries.length > 0) {
-		if (
-			!(await confirmMessage(
-				'This folder already contains files. They might get overwritten. Do you want to continue?'
-			))
-		) {
-			return;
-		}
-	}
-
-	const promises: Promise<unknown>[] = [
-		(async () => {
-			const saveFile = await entry.getFileHandle(`save.dddg`, {
-				create: true,
-			});
-			const saveBlob = new Blob([await state.getSave(false)], {
-				type: 'text/plain',
-			});
-			const writable = await saveFile.createWritable();
-			await writable.write(saveBlob);
-			await writable.close();
-		})(),
-	];
-
-	for (const [name, url] of Object.entries(state.uploadUrls.urls)) {
-		promises.push(
-			(async () => {
-				const file = await entry.getFileHandle(name, {
-					create: true,
-				});
-				const writable = await file.createWritable();
-				const fileLoader = await fetch(url);
-				const blob = await fileLoader.blob();
-				await writable.write(blob);
-				await writable.close();
-			})()
-		);
-	}
-}
-
-async function loadFolder(e: Event) {
-	const files = (e.target as HTMLInputElement).files;
-
-	if (!files) return;
-
-	await transaction(async () => {
-		for (const file of files) {
-			const name = file.name;
-
-			if (name === 'save.dddg') {
-				const data = await file.text();
-				await state.loadSave(data);
-			}
-
-			const url = URL.createObjectURL(file);
-			state.uploadUrls.add(name, url);
-		}
-	});
-
-	await renderCurrentThumbnail();
-
-	if (!environment.supports.limitedCanvasSpace) {
-		setTimeout(() => {
-			restoreThumbnails();
-		}, 1000);
-	} else {
-		eventBus.fire(
-			new ShowMessageEvent(
-				'To prevent running out of memory, thumbnails will not be automatically restored in the background.'
-			)
-		);
-	}
-}
 
 async function renderCurrentThumbnail() {
 	// FIXME: This sadly makes it so the selection halo is visible in the thumbnails.
@@ -765,6 +623,20 @@ onUnmounted(() => {
 eventBus.subscribe(RenderUpdatedEvent, () =>
 	requestAnimationFrame(renderCurrentThumbnail)
 );
+eventBus.subscribe(InvalidateAllThumbnails, () => {
+	if (!environment.supports.limitedCanvasSpace) {
+		setTimeout(() => {
+			restoreThumbnails();
+		}, 1000);
+	} else {
+		eventBus.fire(
+			new ShowMessageEvent(
+				'To prevent running out of memory, thumbnails will not be automatically restored in the background.'
+			)
+		);
+	}
+});
+
 //#endregion Thumbnails
 //#region Saving/Loading
 async function save() {
@@ -788,6 +660,25 @@ async function load() {
 	await transaction(async () => {
 		const uploadInput = loadUpload.value;
 		if (!uploadInput.files) return;
+		if (uploadInput.files.length === 0) return;
+		if (uploadInput.files[0].name.endsWith('.zip')) {
+			eventBus.fire(new StateLoadingEvent());
+			const JSZip = await import('jszip');
+			const zip = new JSZip.default();
+			await zip.loadAsync(uploadInput.files[0]);
+
+			await loadFolder(
+				await Promise.all(
+					Object.values(zip.files).map(
+						async (file) =>
+							new File([await file.async('blob')], file.name, {
+								type: 'application/octet-stream',
+							})
+					)
+				)
+			);
+			return;
+		}
 		eventBus.fire(new StateLoadingEvent());
 		const data = await blobToText(uploadInput.files[0]);
 		await state.loadSave(data);
@@ -795,20 +686,9 @@ async function load() {
 
 	await renderCurrentThumbnail();
 
-	if (!environment.supports.limitedCanvasSpace) {
-		setTimeout(() => {
-			restoreThumbnails();
-		}, 1000);
-	} else {
-		eventBus.fire(
-			new ShowMessageEvent(
-				'To prevent running out of memory, thumbnails will not be automatically restored in the background.'
-			)
-		);
-	}
+	eventBus.fire(new InvalidateAllThumbnails());
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function blobToText(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();

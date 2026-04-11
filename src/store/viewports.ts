@@ -20,7 +20,10 @@ export const viewports = reactive(
 
 		setUpViewport(doc: Document): Raw<Viewport> {
 			// Viewport already initialized
-			if (doc.body.dataset.viewportId != null)
+			if (
+				doc.body.dataset.viewportId != null &&
+				this.list[+doc.body.dataset.viewportId] != null
+			)
 				return markRaw(this.list[+doc.body.dataset.viewportId]);
 
 			const newViewportId = this._currentViewportCount++;
@@ -48,18 +51,12 @@ export const viewports = reactive(
 						target.addEventListener(
 							'wheel',
 							(wheelEvent) => {
-								const inc =
-									wheelEvent.deltaY > 0 ||
-									wheelEvent.deltaX > 0;
+								const inc = wheelEvent.deltaY > 0 || wheelEvent.deltaX > 0;
 								wheelEvent.preventDefault();
 								wheelEvent.stopPropagation();
 								target.valueAsNumber +=
 									(inc ? 1 : -1) *
-									(wheelEvent.shiftKey
-										? 10
-										: wheelEvent.altKey
-											? 0.1
-											: 1);
+									(wheelEvent.shiftKey ? 10 : wheelEvent.altKey ? 0.1 : 1);
 								target.dispatchEvent(
 									new Event('input', {
 										bubbles: true,
@@ -89,6 +86,7 @@ export const viewports = reactive(
 			if (doc.body.dataset.viewportId == null) return;
 			const viewportId = +doc.body.dataset.viewportId;
 			if (viewportId == null) return;
+			doc.body.dataset.viewportId = undefined;
 			delete this._list[viewportId];
 		}
 
@@ -183,8 +181,7 @@ export class Viewport {
 			return Math.min(availableWidth, maxWidthByRatio);
 		} else {
 			const availableWidth = this.width;
-			const maxWidthByRatio =
-				(this.height - ToolboxSize) * CanvasAspectRatio;
+			const maxWidthByRatio = (this.height - ToolboxSize) * CanvasAspectRatio;
 
 			return Math.min(availableWidth, maxWidthByRatio);
 		}
@@ -193,8 +190,7 @@ export class Viewport {
 	public get canvasHeight(): number {
 		if (this.isVertical) {
 			const availableHeight = this.height;
-			const maxHeightByRatio =
-				(this.width - ToolboxSize) / CanvasAspectRatio;
+			const maxHeightByRatio = (this.width - ToolboxSize) / CanvasAspectRatio;
 
 			return Math.min(availableHeight, maxHeightByRatio);
 		} else {

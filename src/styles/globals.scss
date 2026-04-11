@@ -62,8 +62,13 @@ select,
 	background: var(--accent-background);
 	color: var(--text);
 
-	&:active {
+	&:not(select[size]):active {
 		background: var(--border);
+	}
+
+	option:checked {
+		background: var(--border);
+		color: var(--text);
 	}
 }
 
@@ -197,6 +202,10 @@ body.dark-theme {
 
 .bl0 {
 	border-left: 0;
+}
+
+.br0 {
+	border-right: 0;
 }
 
 // Specificity nonsense

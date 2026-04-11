@@ -56,6 +56,11 @@ export class InvalidateRenderEvent implements IEvent {
 	public readonly kind = 'InvalidateRenderEvent';
 }
 
+export class InvalidateAllThumbnails implements IEvent {
+	public static readonly kind = 'InvalidateAllThumbnails';
+	public readonly kind = 'InvalidateAllThumbnails';
+}
+
 export class RenderUpdatedEvent implements IEvent {
 	public static readonly kind = 'RenderUpdatedEvent';
 	public readonly kind = RenderUpdatedEvent.kind;
@@ -78,6 +83,26 @@ export class ResolvableErrorEvent implements IEvent {
 	public constructor(
 		public message: string,
 		public actions: { name: string; exec: () => void }[]
+	) {}
+}
+
+export class ShowDialogEvent implements IEvent {
+	public static readonly kind = 'ShowDialogEvent';
+	public readonly kind = 'ShowDialogEvent';
+	public constructor(
+		public id: number,
+		public text: string,
+		public options: string[],
+		public closeOption: string
+	) {}
+}
+
+export class DialogResponseEvent implements IEvent {
+	public static readonly kind = 'DialogResponseEvent';
+	public readonly kind = 'DialogResponseEvent';
+	public constructor(
+		public id: number,
+		public result: string
 	) {}
 }
 

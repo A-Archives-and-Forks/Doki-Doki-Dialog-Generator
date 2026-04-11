@@ -8,34 +8,6 @@ import { Electron } from './electron';
 
 export type Folder = 'downloads' | 'sprites' | 'backgrounds';
 
-export interface EnvState {
-	looseTextParsing: boolean;
-	autoAdd: string[];
-	downloadLocation: string;
-	hasTemplate: boolean;
-}
-
-export interface EnvCapabilities {
-	setDownloadFolder: boolean;
-	optionalSaving: boolean;
-	autoLoading: boolean;
-	localRepo: boolean;
-	backgroundInstall: boolean;
-	lq: boolean;
-	openableFolders: ReadonlySet<Folder>;
-	assetCaching: boolean;
-	allowWebP: boolean;
-	limitedCanvasSpace: boolean;
-}
-
-export interface Settings {
-	lq?: boolean;
-	nsfw?: boolean;
-	darkMode?: boolean;
-	defaultCharacterTalkingZoom?: boolean;
-	looseTextParsing?: boolean;
-}
-
 export interface IEnvironment {
 	readonly localRepositoryUrl: string;
 	readonly gameMode: 'ddlc' | 'ddlc_plus' | null;
@@ -62,11 +34,7 @@ export interface IEnvironment {
 	prompt(message: string, defaultValue?: string): Promise<string | null>;
 	onPanelChange(handler: (panel: string) => void): void;
 
-	localRepoInstall(
-		url: string,
-		repo: IPack,
-		authors: IAuthors
-	): Promise<void>;
+	localRepoInstall(url: string, repo: IPack, authors: IAuthors): Promise<void>;
 	localRepoUninstall(id: string): Promise<void>;
 	autoLoadAdd(id: string): Promise<void>;
 	autoLoadRemove(id: string): Promise<void>;
@@ -85,6 +53,54 @@ export interface IEnvironment {
 	storeSaveFile(save: Blob, defaultName: string): Promise<void>;
 
 	openNewWindow(): Window | null;
+
+	storage: EnvStorage;
+}
+
+export interface EnvStorage {
+	getSaves(): EnvStorageEntry[];
+	save(name: string): Promise<EnvStorageEntry>;
+	load(name: string): Promise<void>;
+	delete(name: string): Promise<void>;
+	downloadAsZip(name: string): Promise<void>;
+	uploadFromZip(name: string, zip: Blob): Promise<void>;
+	requestPersistance(): Promise<void>;
+	isPersisted(): boolean;
+}
+
+export interface EnvStorageEntry {
+	name: string;
+	size: number;
+	timestamp: Date;
+}
+
+export interface EnvState {
+	looseTextParsing: boolean;
+	autoAdd: string[];
+	downloadLocation: string;
+	hasTemplate: boolean;
+}
+
+export interface EnvCapabilities {
+	setDownloadFolder: boolean;
+	optionalSaving: boolean;
+	autoLoading: boolean;
+	localRepo: boolean;
+	backgroundInstall: boolean;
+	lq: boolean;
+	openableFolders: ReadonlySet<Folder>;
+	assetCaching: boolean;
+	allowWebP: boolean;
+	limitedCanvasSpace: boolean;
+	storage: boolean;
+}
+
+export interface Settings {
+	lq?: boolean;
+	nsfw?: boolean;
+	darkMode?: boolean;
+	defaultCharacterTalkingZoom?: boolean;
+	looseTextParsing?: boolean;
 }
 
 function chooseEnv(): IEnvironment {

@@ -24,6 +24,7 @@
 			@download="renderer.download()"
 			@show-dialog="showDialog"
 			@show-expression-dialog="showExpressionDialog"
+			@show-save-dialog="showSaveDialog"
 		/>
 		<keep-alive>
 			<modal-dialog
@@ -32,6 +33,15 @@
 				@leave="dialogVisable = false"
 			>
 				<single-box ref="packDialog" @leave="dialogVisable = false" />
+			</modal-dialog>
+		</keep-alive>
+		<keep-alive>
+			<modal-dialog
+				v-if="savesVisible"
+				ref="dialog"
+				@leave="savesVisible = false"
+			>
+				<save-dialog ref="saveDialog" @leave="savesVisible = false" />
 			</modal-dialog>
 		</keep-alive>
 		<modal-dialog
@@ -47,6 +57,7 @@
 		</modal-dialog>
 	</div>
 	<div id="modal-messages"></div>
+	<dynamic-dialogs />
 </template>
 
 <script lang="ts" setup>
@@ -71,6 +82,8 @@ import {
 	useTemplateRef,
 	watch,
 } from 'vue';
+import DynamicDialogs from './components/dynamic-dialogs.vue';
+import SaveDialog from './components/save-dialog/save-dialog.vue';
 
 const app = useTemplateRef('app');
 
@@ -265,6 +278,13 @@ function showDialog(search: string | undefined) {
 	nextTick(wait);
 }
 //#endregion pack dialog
+//#region save dialog
+const savesVisible = ref(false);
+const saveDialog = ref(null! as typeof SaveDialog);
+function showSaveDialog() {
+	savesVisible.value = true;
+}
+//#endregion save dialog
 //#region nsfw
 import { NsfwNames, NsfwPaths } from './constants/nsfw';
 import type { GenObject } from './store/object-types/object';
@@ -302,8 +322,7 @@ function onKeydown(e: KeyboardEvent) {
 	}
 
 	transaction(async () => {
-		const ctrl =
-			(e.ctrlKey || e.metaKey) /* mac */ && !e.altKey && !e.shiftKey;
+		const ctrl = (e.ctrlKey || e.metaKey) /* mac */ && !e.altKey && !e.shiftKey;
 		const noMod = !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey;
 		if (ctrl && e.key === 'v') {
 			await store.ui.pasteObjects(
@@ -322,9 +341,7 @@ function onKeydown(e: KeyboardEvent) {
 		if (selection == null) return;
 		if (ctrl) {
 			if (e.key === 'c' || e.key === 'x') {
-				store.ui.copyObjectToClipboard(selectionPanel.id, [
-					selection.id,
-				]);
+				store.ui.copyObjectToClipboard(selectionPanel.id, [selection.id]);
 				if (e.key === 'x') {
 					selectionPanel.removeObject(selection);
 				}
@@ -425,9 +442,7 @@ watch(
 	() => viewport.value.selection,
 	(id) => {
 		if (document.activeElement?.getAttribute('data-obj-id') !== '' + id) {
-			(
-				document.querySelector(`*[data-obj-id='${id}']`) as HTMLElement
-			)?.focus({
+			(document.querySelector(`*[data-obj-id='${id}']`) as HTMLElement)?.focus({
 				focusVisible: false,
 				preventScroll: true,
 			});
@@ -447,8 +462,7 @@ onMounted(async () => {
 
 	if (store.panels.lastPanelId === -1) {
 		await transaction(async () => {
-			environment.state.looseTextParsing =
-				settings.looseTextParsing || true;
+			environment.state.looseTextParsing = settings.looseTextParsing || true;
 
 			store.ui.lqRendering = settings.lq ?? false;
 			store.ui.useDarkTheme = settings.darkMode ?? null;
@@ -482,8 +496,7 @@ onMounted(async () => {
 							' you find the toolbox. There you can add things (try clicking the chibis), change backgrounds and more! Use the camera icon to download the image.'
 					);
 				}
-				panel.background.current =
-					'dddg.buildin.backgrounds:ddlc.clubroom';
+				panel.background.current = 'dddg.buildin.backgrounds:ddlc.clubroom';
 				store.ui.nsfw = settings.nsfw ?? false;
 			}
 		});

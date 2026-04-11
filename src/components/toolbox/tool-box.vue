@@ -51,7 +51,10 @@
 		<sprite-tool v-else-if="panel === 'sprite'" />
 		<textbox-tool v-else-if="panel === 'textBox'" />
 		<choice-tool v-else-if="panel === 'choice'" />
-		<panels-tool v-else-if="panel === 'panels'" />
+		<panels-tool
+			v-else-if="panel === 'panels'"
+			@show-save-dialog="emit('show-save-dialog')"
+		/>
 		<notification-tool v-else-if="panel === 'notification'" />
 		<poem-tool v-else-if="panel === 'poem'" />
 		<add-tool v-else @show-dialog="emit('show-dialog', $event)" />
@@ -126,6 +129,7 @@ const emit = defineEmits<{
 	'show-prev-render': [];
 	download: [];
 	'show-expression-dialog': [settings: { character: string }];
+	'show-save-dialog': [];
 }>();
 
 const panels = ref(null! as HTMLDivElement);

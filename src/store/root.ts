@@ -5,7 +5,7 @@ import { ui } from './ui';
 import { uploadUrls } from './upload-urls';
 import { viewports } from './viewports';
 
-export const state = Object.freeze({
+export const state = {
 	ui,
 	panels,
 	content,
@@ -40,7 +40,9 @@ export const state = Object.freeze({
 			'\t'
 		);
 	},
-} as const);
+} as const;
+
+Object.freeze(state);
 
 export type IRootState = typeof state;
 

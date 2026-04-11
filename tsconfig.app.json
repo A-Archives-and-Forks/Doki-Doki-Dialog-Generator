@@ -1,14 +1,25 @@
 {
 	"extends": "@vue/tsconfig/tsconfig.dom.json",
-	"include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
-	"exclude": ["src/**/__tests__/*"],
+	"include": [
+		"env.d.ts",
+		"src/**/*",
+		"src/**/*.vue"
+	],
+	"exclude": [
+		"src/**/__tests__/*"
+	],
 	"compilerOptions": {
 		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-
-		"lib": ["ES2021", "DOM", "DOM.Iterable"],
-
+		"lib": [
+			"ESNext",
+			"DOM",
+			"DOM.Iterable",
+			"DOM.AsyncIterable"
+		],
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": [
+				"./src/*"
+			]
 		}
 	}
 }
