@@ -30,10 +30,14 @@ export class Repo {
 		return Repo.instance;
 	}
 
+	public static invalidateInstance() {
+		Repo.instance = null;
+	}
+
 	private static async createInstance(): Promise<Repo> {
 		const onlineRepoLoading = Repo.loadRepo(repoUrl);
 		const localRepoLoading = environment.supports.localRepo
-			? await Repo.loadRepo(environment.localRepositoryUrl)
+			? Repo.loadRepo(environment.localRepositoryUrl)
 			: null;
 
 		const [onlineRepoLoaded, localRepoLoaded] = await Promise.all([
