@@ -196,8 +196,10 @@ export const content = new (class Content {
 		}
 
 		content._contentPacks.value = [
-			...content._contentPacks.value.filter((x) =>
-				x.packId?.startsWith('dddg.buildin.')
+			...content._contentPacks.value.filter(
+				(x) =>
+					x.packId?.startsWith('dddg.buildin.') &&
+					!x.packId?.endsWith('.nsfw')
 			),
 			...contentPackLoads
 				.filter((x) => x.status === 'fulfilled')
