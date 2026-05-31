@@ -3,8 +3,8 @@ import type { GenObject } from './object-types/object';
 import type { Panel } from './panels';
 import { state } from './root';
 
-export const ui = reactive(
-	Object.seal({
+export const ui = Object.seal(
+	reactive({
 		lqRendering: true,
 		nsfw: false,
 		lastDownload: null as string | null,
