@@ -471,10 +471,20 @@ function getLimitedPanelList(): DeepReadonly<Panel['id'][]> {
 		return state.panels.order;
 	}
 
-	return listedPages
-		.sort((a, b) => a - b)
-		.filter((value, idx, ary) => ary[idx - 1] !== value)
-		.map((pageIdx) => state.panels.panels[pageIdx].id);
+	const ret = [] as Panel['id'][];
+	const order = state.panels.order;
+	for (const pageIdx of listedPages) {
+		if (pageIdx < 0 || pageIdx >= order.length) {
+			eventBus.fire(
+				new ShowMessageEvent(
+					`There is no panel with the index ${pageIdx + 1}. The maximum index is ${order.length}. Skipping.`
+				)
+			);
+			continue;
+		}
+		ret.push(order[pageIdx]);
+	}
+	return ret;
 }
 function getPanelDistibution(): DeepReadonly<Panel['id'][][]> {
 	const panelOrder = getLimitedPanelList();
