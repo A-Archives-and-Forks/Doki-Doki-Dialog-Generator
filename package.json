@@ -1,6 +1,6 @@
 {
 	"name": "doki-doki-dialog-generator",
-	"version": "2.6.1",
+	"version": "2.6.2",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
@@ -28,6 +28,7 @@
 	"dependencies": {
 		"@edave64/dddg-repo-filters": "^0.4.0",
 		"@edave64/doki-doki-dialog-generator-pack-format": "^2.0.0",
+		"@tauri-apps/api": "^2",
 		"jszip": "^3.10.1",
 		"mitt": "^3.0.1",
 		"pinia": "^3.0.3",
