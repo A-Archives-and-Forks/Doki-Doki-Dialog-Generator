@@ -5,6 +5,8 @@ import fs from 'node:fs';
 import { defineConfig, loadEnv } from 'vite';
 import vueDevTools from 'vite-plugin-vue-devtools';
 
+const isCI = process.env.SKIP_CHECKS === 'true';
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
 	// load the enviroment variables from the .env files, according to the current mode (desktop, development, production)
@@ -13,7 +15,7 @@ export default defineConfig(({ mode }) => {
 		...loadEnv(mode, process.cwd()),
 	};
 
-	if (!fs.existsSync('./public/assets/logo.webp')) {
+	if (!fs.existsSync('./public/assets/logo.webp') && !isCI) {
 		// Btw, if you are opposed to WebP, you are wrong. If your stupid programs don't support a format that has
 		// existed since 2010, that's their problem, not an issue with the format.
 		console.warn(
@@ -23,7 +25,7 @@ export default defineConfig(({ mode }) => {
 		env.VITE_ALLOW_WEBP = 'false';
 	}
 
-	if (!fs.existsSync('./public/assets/logo.lq.png')) {
+	if (!fs.existsSync('./public/assets/logo.lq.png') && !isCI) {
 		console.warn(
 			'Assets do not seem to have low quality versions. Loading of low quality assets has been disabled. ' +
 				'Run `npm run assetConversions` and rerun this command to include low quality assets.'
